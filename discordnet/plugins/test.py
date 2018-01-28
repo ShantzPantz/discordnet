@@ -1,5 +1,5 @@
 '''
-Barebonese Test
+Barebones Test
 '''
 
 __author__ = ('Brian', 'Shantz')

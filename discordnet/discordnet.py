@@ -1,17 +1,9 @@
 import discord
-import threading
-from plugins import coinflip
 
 import config
 from importer import list_plugins
 
-HELP_DOC = """help <command>
-help syntax:
-optional arguments: [arg name]
-mandatory arguments: <arg name>
-literal arguments: 'this|yesterday|tomorrow'
-
-literal commands can be mandatory or optional"""
+HELP_DOC = """help <command>"""
 
 
 class DiscordNetBot(discord.Client):
@@ -20,50 +12,55 @@ class DiscordNetBot(discord.Client):
         self.plugins_interactive = {}
         # Plugins that are passive background tasks and aren't triggered by commands
         self.plugins_passive = []
+        self.plugin_helps = {}
         self.load_plugins()
 
     def load_plugins(self):
         print("loading plugins!")
         self.plugins_interactive = {}
         self.plugins_passive = []
+        self.plugin_helps = {
+            'help': HELP_DOC
+        }
         plugins = list_plugins()
         if not plugins:
-            print("No plugins")
             return
         for plugin in plugins:
+            if plugin.__doc__ and plugin.COMMAND:
+                self.plugin_helps[plugin.COMMAND.lower()] = plugin.__doc__.strip('\n')
             if plugin.COMMAND:
+                print("Adding Plugin: " + plugin.COMMAND)
                 self.plugins_interactive[plugin.COMMAND.lower()] = plugin
             else:
                 self.plugins_passive.append(plugin)
 
     @staticmethod
     def parse_command_content(content):
-        print("Original Message: " + content)
         if not content:
             return
-        print("Prefix: " + content[0])
         if content[0] != config.COMMAND_PREFIX:
             return
         command, _, content = content[1:].partition(' ')
         clean_command = command.lower().strip()
         return clean_command, content
 
-    async def run_plugin(self, message, **kwargs):
+    async def run_plugins_passive(self, message, **kwargs):
+        for plugin in self.plugins_passive:
+            await plugin.main(self, message, **kwargs)
+
+    async def run_plugin_interactive(self, message, **kwargs):
         parsed_content = self.parse_command_content(message.content)
         if parsed_content is None:
             return
         command, content = parsed_content
-        print(command)
-        map(print, self.plugins_interactive)
+        message.content = content
         if command in self.plugins_interactive:
             plugin = self.plugins_interactive[command]
-            await plugin.main(self, message)
-        else:
-            print("Invalid Command " + command)
+            await plugin.main(self, message, **kwargs)
 
 
 if __name__ == '__main__':
-    print('Hello World')
+    print('Starting DiscordNet')
     client = DiscordNetBot()
 
     @client.event
@@ -77,7 +74,8 @@ if __name__ == '__main__':
     async def on_message(message):
         if message.author.name == client.user.name:
             return
-        await client.run_plugin(message)
+        await client.run_plugins_passive(message)
+        await client.run_plugin_interactive(message)
 
 
     client.run(config.DISCORD_TOKEN)
