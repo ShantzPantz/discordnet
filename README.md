@@ -1,2 +1,0 @@
-# discordnet
-Discord Bot
