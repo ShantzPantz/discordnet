@@ -3,6 +3,7 @@ import discord
 import config
 from importer import list_plugins
 
+
 HELP_DOC = """help <command>"""
 
 
@@ -32,6 +33,7 @@ class DiscordNetBot(discord.Client):
                 print("Adding Plugin: " + plugin.COMMAND)
                 self.plugins_interactive[plugin.COMMAND.lower()] = plugin
             else:
+                print('Adding Passive Plugin')
                 self.plugins_passive.append(plugin)
 
     @staticmethod
@@ -65,10 +67,21 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
+        for plugin in client.plugins_interactive:
+            try:
+                await client.plugins_interactive[plugin].init()
+            except AttributeError:
+                print(plugin + " does not have an init function defined.")
+        for plugin in client.plugins_passive:
+            try:
+                await client.plugins_passive[plugin].init()
+            except AttributeError:
+                print(plugin + " does not have an init function defined.")
         print('Logged in as')
         print(client.user.name)
         print(client.user.id)
         print('-------------')
+
 
     @client.event
     async def on_message(message):
@@ -79,4 +92,3 @@ if __name__ == '__main__':
 
 
     client.run(config.DISCORD_TOKEN)
-

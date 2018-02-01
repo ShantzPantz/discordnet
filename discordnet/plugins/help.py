@@ -10,8 +10,8 @@ async def main(bot, message, **kwargs):
     if not content_parts:
         command_list = []
         for command in bot.plugins_interactive.keys():
-            command_list.append(config.COMMAND_PREFIX + command)
-        await bot.send_message(message.channel, 'Available Commands: \n' + '\n'.join(command_list))
+            command_list.append("**"+config.COMMAND_PREFIX + command+"**")
+        await bot.send_message(message.channel, 'Available Commands: \n\t' + '\n\t'.join(command_list))
     else:
         plugin = content_parts[0]
         if plugin.startswith(config.COMMAND_PREFIX):

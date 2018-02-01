@@ -1,5 +1,5 @@
 '''
-Flip a coin, 50/50 shot.
+    Flip a coin, 50/50 shot.
 '''
 
 import random
