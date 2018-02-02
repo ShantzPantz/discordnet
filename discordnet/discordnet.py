@@ -1,8 +1,8 @@
 import discord
-
 import config
-from importer import list_plugins
 
+from importer import list_plugins
+import discordcache
 
 HELP_DOC = """help <command>"""
 
@@ -67,6 +67,8 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
+        discordcache.main()
+
         for plugin in client.plugins_interactive:
             try:
                 await client.plugins_interactive[plugin].init()
