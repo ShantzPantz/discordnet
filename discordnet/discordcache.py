@@ -1,48 +1,40 @@
-import db
-from sqlite3 import Error
+import json
 
-import config
-
-
-def create_messages_table():
-    try:
-        db.execute_query(config.MAIN_DATABASE,
-           '''CREATE TABLE IF NOT EXISTS messages(
-                            id BIGINT PRIMARY KEY, 
-                            message_id TEXT,
-                            user_id TEXT,
-                            channel_id TEXT,
-                            server_id TEXT,
-                            user_name TEXT,
-                            edited_timestamp DATETIME,
-                            timestamp DATETIME,
-                            tts BOOLEAN,
-                            content TEXT,
-                            clean_content TEXT,
-                            system_content TEXT
-                            )''')
-    except Error as e:
-        print(e)
+message_cache_file = 'data/server_messages.json'
 
 
-def add_messages_to_db(m):
-    sql = '''INSERT INTO messages(message_id, user_id, channel_id, server_id, user_name,
-            edited_timestamp, timestamp, tts, content, clean_content, system_content)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?)'''
+async def update_messages_cache(client):
+    rows = []
+    for server in client.servers:
+        for channel in server.channels:
+            async for m in client.logs_from(channel, limit=10000):
+                rows.append({
+                    'id': m.id,
+                    'timestamp': m.timestamp.timestamp(),
+                    'content': m.content,
+                    'clean_content': m.clean_content,
+                    'server_name': m.server.name,
+                    'server_id': m.server.id,
+                    'channel_name': m.channel.name,
+                    'channel_id': m.channel.id,
+                    'user': m.author.name,
+                    'user_id': m.author.id,
+                    'bot': m.author.bot
+                })
 
-    values = (m.id, m.author.id, m.channel.id, m.server.id, m.author.name,
-                m.edited_timestamp, m.timestamp, (m.tts), m.content,
-                m.clean_content, m.system_content)
-
-    print(values)
-    db.execute_query(config.MAIN_DATABASE, sql, values)
-
-
-def get_messages_for_user(userid):
-    sql = '''SELECT * FROM messages LIMIT WHERE user_id=?'''
-    results = db.execute_query(config.MAIN_DATABASE, sql, userid)
-    return results
+    output = json.dumps(rows)
+    fh = open(message_cache_file, "w")
+    fh.write(output)
+    fh.close()
+    print("Done")
 
 
-def main():
-    create_messages_table()
+async def get_messages_from_cache(channel_id=None, user_id=None):
+    jsondata = json.load(open(message_cache_file))
+    usermessages = list(filter(lambda x: x['user_id'] == user_id
+                        and (channel_id == x['channel_id']), jsondata))
+    return usermessages
+
+
+async def update_messages_if_required(client):
+    await update_messages_cache(client)

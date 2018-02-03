@@ -60,6 +60,10 @@ class DiscordNetBot(discord.Client):
             plugin = self.plugins_interactive[command]
             await plugin.main(self, message, **kwargs)
 
+    @staticmethod
+    async def get_all_messages(channel_id=None, user_id=None):
+        return await discordcache.get_messages_from_cache(channel_id, user_id)
+
 
 if __name__ == '__main__':
     print('Starting DiscordNet')
@@ -67,7 +71,7 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
-        discordcache.main()
+        await discordcache.update_messages_if_required(client)
 
         for plugin in client.plugins_interactive:
             try:
