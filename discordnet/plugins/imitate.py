@@ -60,15 +60,15 @@ async def main(bot, message, **kwargs):
 
     # eventually handle more than one target user, but for now just use the first in the list.
     user = targetusers[0]
-    #usermessages = await bot.get_all_messages(message.channel.id, user.id)
     usermessages = await bot.get_all_messages(message.channel.id, user.id)
+    #usermessages = await bot.get_all_messages('356961851679965186', user.id)
 
     if usermessages is not None and len(usermessages) > 5:
         responses = generate_sentences_from_messages(usermessages)
         filtered = list(filter(lambda x: x is not None, responses))
         if len(filtered) > 0:
             print(responses)
-            output = get_random_opener(user.mention) + "\n\n" + "\n".join(filtered)
+            output = get_random_opener(user.mention) + "\n\n" + " ".join(filtered)
         else:
             output = "Wow... I wasn't able to generate messages for " + user.display_name
     else:
