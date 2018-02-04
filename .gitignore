@@ -2,3 +2,5 @@
 /discordnet/config.py
 /.idea
 *.pyc
+/discordnet/data/db/sqlite.db
+/discordnet/data

@@ -1,14 +1,12 @@
 '''
     Generate messages based on a markov chain model based on message history.
     Usage:
-        !imitate                - returns 5 generated messages for you based on historical data.
-        !imitate <@username>     - returns 5 generated messages for a user.
+        !imitate <@username> <#channel>  - returns 5 generated messages for a user from data on an existing channel.
 '''
 
 import random
 
 import markovify
-import json
 
 
 COMMAND = 'imitate'
@@ -36,7 +34,7 @@ def get_sub_command(content):
     return parts[0]
 
 
-def generate_sentences_from_messages(messages):
+def generate_sentences_from_messages(messages, short=True):
     usertext = ""
     for t in messages:
         usertext += t['clean_content'] + "\n"
@@ -45,34 +43,41 @@ def generate_sentences_from_messages(messages):
     # Collect five randomly-generated sentences
     generated = []
     for i in range(5):
-        generated.append(model.make_sentence())
+        gentext = model.make_short_sentence(140, 0) if short else model.make_sentence()
+        generated.append(gentext)
     return generated
 
 
 async def main(bot, message, **kwargs):
     for me in message.mentions:
-        print(me.mention)
-        print(me.name)
+        print("User Mention: " + me.name)
+    for ch in message.channel_mentions:
+        print("Channel Mention: " + ch.name)
     if message.mentions is None or len(message.mentions) == 0:
         targetusers = [message.author]
     else:
         targetusers = message.mentions
 
+    if message.channel_mentions is None or len(message.channel_mentions) == 0:
+        targetchannels = message.server.channels
+    else:
+        targetchannels = message.channel_mentions
+
     # eventually handle more than one target user, but for now just use the first in the list.
-    user = targetusers[0]
-    usermessages = await bot.get_all_messages(message.channel.id, user.id)
-    #usermessages = await bot.get_all_messages('356961851679965186', user.id)
+    user_ids = [user.id for user in targetusers]
+    channel_ids = [channel.id for channel in targetchannels]
+    usermessages = await bot.get_all_messages(channel_ids, user_ids)
 
     if usermessages is not None and len(usermessages) > 5:
-        responses = generate_sentences_from_messages(usermessages)
+        short = get_sub_command(message.content) == 'short'
+        responses = generate_sentences_from_messages(usermessages, short)
         filtered = list(filter(lambda x: x is not None, responses))
         if len(filtered) > 0:
-            print(responses)
-            output = get_random_opener(user.mention) + "\n\n" + " ".join(filtered)
+            output = get_random_opener(", ".join([u.mention for u in targetusers])) + "\n\n" + "\n\n".join(filtered)
         else:
-            output = "Wow... I wasn't able to generate messages for " + user.display_name
+            output = "Wow... I wasn't able to generate messages for " + ", ".join([u.display_name for u in targetusers])
     else:
-        output = "Sorry, I don't have enough data to generate messages for " + user.display_name
+        output = "Sorry, I don't have enough data to generate messages for " + ", ".join([u.display_name for u in targetusers])
 
     await bot.send_message(message.channel, output)
 
