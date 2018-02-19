@@ -13,7 +13,7 @@ COMMAND = 'imitate'
 
 
 openers = [
-    'Hey, you guys wanna here my %username% impression?',
+    'Hey, you guys wanna hear my %username% impression?',
     "Look at me. I'm the %username% now.",
     "Here's my attempt at %username%.",
     "This is my impression of %username%. Could I make it on the comedy circuit?",
