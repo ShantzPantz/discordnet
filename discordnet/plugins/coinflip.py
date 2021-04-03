@@ -19,5 +19,6 @@ def _chance(probability):
 
 async def main(bot, message, **kwargs):
     flip = coinflip()
-    await bot.send_message(message.channel, flip)
+    await message.channel.send(flip)
+
 

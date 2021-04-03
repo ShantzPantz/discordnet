@@ -1,6 +1,6 @@
 import json
 
-message_cache_file = 'data/server_messages.json'
+message_cache_file = 'data/server_messages_2020_dec_23.json'
 
 
 async def update_messages_cache(client):
@@ -29,10 +29,11 @@ async def update_messages_cache(client):
     print("Done")
 
 
-async def get_messages_from_cache(channel_ids, user_ids):
+async def get_messages_from_cache(channels, users):
     jsondata = json.load(open(message_cache_file))
-    usermessages = list(filter(lambda x: x['user_id'] in user_ids
-                        and x['channel_id'] in channel_ids, jsondata))
+    print(len(jsondata))
+    usermessages = list(filter(lambda x: x['user'] in users
+                        and x['channel_name'] in channels, jsondata))
     return usermessages
 
 

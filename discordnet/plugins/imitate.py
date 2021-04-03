@@ -59,14 +59,14 @@ async def main(bot, message, **kwargs):
         targetusers = message.mentions
 
     if message.channel_mentions is None or len(message.channel_mentions) == 0:
-        targetchannels = message.server.channels
+        targetchannels = bot.get_all_channels()
     else:
         targetchannels = message.channel_mentions
 
     # eventually handle more than one target user, but for now just use the first in the list.
-    user_ids = [user.id for user in targetusers]
-    channel_ids = [channel.id for channel in targetchannels]
-    usermessages = await bot.get_all_messages(channel_ids, user_ids)
+    user_names = [user.name for user in targetusers]
+    channel_names = [channel.name for channel in targetchannels]
+    usermessages = await bot.get_all_messages(channel_names, user_names)
 
     if usermessages is not None and len(usermessages) > 5:
         short = get_sub_command(message.content) == 'short'
@@ -79,7 +79,7 @@ async def main(bot, message, **kwargs):
     else:
         output = "Sorry, I don't have enough data to generate messages for " + ", ".join([u.display_name for u in targetusers])
 
-    await bot.send_message(message.channel, output)
+    await message.channel.send(output)
 
 
 

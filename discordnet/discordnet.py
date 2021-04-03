@@ -1,8 +1,9 @@
 import discord
 import config
+import discordcache
 
 from importer import list_plugins
-import discordcache
+#import discordcache
 
 HELP_DOC = """help <command>"""
 
@@ -10,6 +11,7 @@ HELP_DOC = """help <command>"""
 class DiscordNetBot(discord.Client):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        print("Init");
         self.plugins_interactive = {}
         # Plugins that are passive background tasks and aren't triggered by commands
         self.plugins_passive = []
@@ -27,9 +29,9 @@ class DiscordNetBot(discord.Client):
         if not plugins:
             return
         for plugin in plugins:
-            if plugin.__doc__ and plugin.COMMAND:
+            if plugin.__doc__ and hasattr(plugin, 'COMMAND'):
                 self.plugin_helps[plugin.COMMAND.lower()] = plugin.__doc__.strip('\n')
-            if plugin.COMMAND:
+            if hasattr(plugin, 'COMMAND'):
                 print("Adding Plugin: " + plugin.COMMAND)
                 self.plugins_interactive[plugin.COMMAND.lower()] = plugin
             else:
@@ -71,16 +73,18 @@ if __name__ == '__main__':
 
     @client.event
     async def on_ready():
-        await discordcache.update_messages_if_required(client)
+        #await discordcache.update_messages_if_required(client)
 
         for plugin in client.plugins_interactive:
             try:
-                await client.plugins_interactive[plugin].init()
+                if hasattr(plugin, 'init'):
+                    await plugin.init()
             except AttributeError:
                 print(plugin + " does not have an init function defined.")
         for plugin in client.plugins_passive:
             try:
-                await client.plugins_passive[plugin].init()
+                if hasattr(plugin, 'init'):
+                    await plugin.init()
             except AttributeError:
                 print(plugin + " does not have an init function defined.")
         print('Logged in as')
