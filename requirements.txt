@@ -2,7 +2,7 @@ aiodns==1.1.1
 aiohttp==1.0.5
 async-timeout==2.0.0
 cchardet==2.1.1
-certifi==2018.1.18
+certifi==2022.12.7
 chardet==3.0.4
 coinmarketcap==4.2.1
 cryptography==1.7.1
