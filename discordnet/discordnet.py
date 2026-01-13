@@ -80,9 +80,9 @@ if __name__ == '__main__':
                 print(plugin + " does not have an init function defined.")
         for plugin in client.plugins_passive:
             try:
-                await client.plugins_passive[plugin].init()
+                await plugin.init()
             except AttributeError:
-                print(plugin + " does not have an init function defined.")
+                print("Passive plugin does not have an init function defined.")
         print('Logged in as')
         print(client.user.name)
         print(client.user.id)
